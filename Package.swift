@@ -63,8 +63,7 @@ let package = Package(
                 .define("GGML_USE_METAL")
             ],
             linkerSettings: [
-                .linkedFramework("Accelerate"),
-                .linkedFramework("CoreAudioTypes")
+                .linkedFramework("Accelerate")
             ]
         ),
         .testTarget(
