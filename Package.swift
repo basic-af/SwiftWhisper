@@ -10,7 +10,7 @@ exclude.append("coreml")
 
 let package = Package(
     name: "SwiftWhisper",
-    platforms: [.iOS(.v17), .macOS(.v14)],
+    platforms: [.iOS(.v17), .macOS(.v10_15)],
     products: [
         .library(name: "SwiftWhisper", targets: ["SwiftWhisper"])
     ],
@@ -18,7 +18,7 @@ let package = Package(
         .target(
             name: "SwiftWhisper",
             dependencies: ["whisper_cpp", "whisper_cpp_metal"],
-            platforms: [.iOS(.v17), .macOS(.v14)]
+            resources: [.process("Resources")]
         ),
         .target(
             name: "whisper_cpp_metal",
@@ -27,8 +27,7 @@ let package = Package(
             publicHeadersPath: "include",
             cSettings: [
                 .unsafeFlags(["-fno-objc-arc"])
-            ],
-            platforms: [.iOS(.v17), .macOS(.v14)]
+            ]
         ),
         .target(
             name: "whisper_cpp",
@@ -51,14 +50,12 @@ let package = Package(
             ],
             linkerSettings: [
                 .linkedFramework("Accelerate"),
-            ],
-            platforms: [.iOS(.v17), .macOS(.v14)]
+            ]
         ),
         .testTarget(
             name: "WhisperTests",
             dependencies: ["SwiftWhisper"],
-            resources: [.copy("TestResources/")],
-            platforms: [.iOS(.v17), .macOS(.v14)]
+            resources: [.copy("TestResources/")]
         )
     ],
     cxxLanguageStandard: CXXLanguageStandard.cxx11
