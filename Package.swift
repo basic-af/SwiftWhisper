@@ -2,6 +2,16 @@
 import PackageDescription
 
 var exclude: [String] = []
+let platforms: [SupportedPlatform]? = [
+    .macOS(.v12),
+    .iOS(.v14),
+    .watchOS(.v4),
+    .tvOS(.v14)
+]
+
+let resources: [Resource] = [
+    .process("ggml-metal.metal")
+]
 
 #if os(Linux)
 // Linux doesn't support CoreML, and will attempt to import the coreml source directory
@@ -10,6 +20,7 @@ exclude.append("coreml")
 
 let package = Package(
     name: "SwiftWhisper",
+    platforms: platforms,
     products: [
         .library(name: "SwiftWhisper", targets: ["SwiftWhisper"])
     ],
@@ -17,7 +28,6 @@ let package = Package(
         .target(
             name: "SwiftWhisper",
             dependencies: ["whisper_cpp", "whisper_cpp_metal"],
-            resources: [.process("Resources")]
         ),
         .target(
             name: "whisper_cpp_metal",
@@ -26,7 +36,8 @@ let package = Package(
             publicHeadersPath: "include",
             cSettings: [
                 .unsafeFlags(["-fno-objc-arc"])
-            ]
+            ],
+            resources: resources
         ),
         .target(
             name: "whisper_cpp",
@@ -47,6 +58,7 @@ let package = Package(
                 .define("WHISPER_COREML_ALLOW_FALLBACK", .when(platforms: [.macOS, .macCatalyst, .iOS])),
                 .define("GGML_USE_METAL", .when(platforms: [.macOS, .macCatalyst, .iOS]))
             ],
+            resources: resources,
             linkerSettings: [
                 .linkedFramework("Accelerate"),
             ]
