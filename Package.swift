@@ -48,7 +48,6 @@ let package = Package(
                 "ggml-alloc.c",
                 "ggml-backend.c",
                 "ggml-quants.c",
-                "ggml-metal.m",
                 "coreml/whisper-encoder-impl.m",
                 "coreml/whisper-encoder.mm",
             ],
