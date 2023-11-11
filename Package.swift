@@ -64,6 +64,7 @@ let package = Package(
             ],
             linkerSettings: [
                 .linkedFramework("Accelerate"),
+                .linkedFramework("CoreAudioTypes")
             ]
         ),
         .testTarget(
