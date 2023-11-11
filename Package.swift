@@ -43,7 +43,6 @@ let package = Package(
                 .unsafeFlags(["-Wno-shorten-64-to-32"]),
                 .define("GGML_USE_ACCELERATE", .when(platforms: [.macOS, .macCatalyst, .iOS])),
                 .define("WHISPER_USE_COREML", .when(platforms: [.macOS, .macCatalyst, .iOS])),
-                .define("SWIFTPM_MODULE_BUNDLE", .when(platforms: [.macOS, .macCatalyst, .iOS])),
                 .define("WHISPER_COREML_ALLOW_FALLBACK", .when(platforms: [.macOS, .macCatalyst, .iOS])),
                 .define("GGML_USE_METAL", .when(platforms: [.macOS, .macCatalyst, .iOS]))
             ],
