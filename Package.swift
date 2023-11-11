@@ -27,10 +27,20 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftWhisper",
-            dependencies: ["whisper_cpp"]
+            dependencies: ["whisper_cpp", "whisper_cpp_metal"]
+        ),
+        .target(
+            name: "whisper_cpp_metal",
+            path: "Sources/whisper_cpp_metal",
+            sources: ["ggml-metal.m"],
+            publicHeadersPath: "include",
+            cSettings: [
+                .unsafeFlags(["-fno-objc-arc"])
+            ]
         ),
         .target(
             name: "whisper_cpp",
+            dependencies: [.target(name: "whisper_cpp_metal")],
             path: "Sources/whisper_cpp",
             sources: [
                 "ggml.c",
@@ -45,7 +55,7 @@ let package = Package(
             resources: resources,
             publicHeadersPath: "include",
             cSettings: [
-                .unsafeFlags(["-Wno-shorten-64-to-32", "-O3", "-DNDEBUG", "-fno-objc-arc"]),
+                .unsafeFlags(["-Wno-shorten-64-to-32", "-O3", "-DNDEBUG"]),
                 .define("GGML_USE_ACCELERATE"),
                 .define("WHISPER_USE_COREML"),
                 .define("WHISPER_COREML_ALLOW_FALLBACK"),
