@@ -45,10 +45,10 @@ let package = Package(
             path: "Sources/whisper_cpp",
             sources: [
                 "ggml.c",
-                "ggml-alloc.c",
-                "coreml/whisper-encoder-impl.m",
-                "coreml/whisper-encoder.mm",
                 "whisper.cpp",
+                "ggml-alloc.c",
+                "ggml-backend.c",
+                "ggml-quants.c"
             ],
             resources: resources,
             publicHeadersPath: "include",
