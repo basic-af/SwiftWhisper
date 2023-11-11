@@ -8,10 +8,12 @@ public class WhisperParams {
 
     internal var whisperParams: whisper_full_params
     internal var _language: UnsafeMutablePointer<CChar>?
+    public var use_gpu: Bool  // Add the use_gpu property
 
-    public init(strategy: WhisperSamplingStrategy = .greedy) {
+    public init(strategy: WhisperSamplingStrategy = .greedy, use_gpu: Bool = false) {
         self.whisperParams = whisper_full_default_params(whisper_sampling_strategy(rawValue: strategy.rawValue))
         self.language = .auto
+        self.use_gpu = use_gpu  // Initialize use_gpu
     }
 
     deinit {
