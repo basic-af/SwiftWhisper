@@ -48,7 +48,8 @@ let package = Package(
                 "whisper.cpp",
                 "ggml-alloc.c",
                 "ggml-backend.c",
-                "ggml-quants.c"
+                "ggml-quants.c",
+                "ggml-metal.m"
             ],
             resources: resources,
             publicHeadersPath: "include",
@@ -66,7 +67,7 @@ let package = Package(
         .testTarget(
             name: "WhisperTests",
             dependencies: ["SwiftWhisper"],
-            resources: [.copy("TestResources/")]
+            resources: [.copy("TestResources/"), .process("ggml-metal.metal")]
         )
     ],
     cxxLanguageStandard: CXXLanguageStandard.cxx11
