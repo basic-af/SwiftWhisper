@@ -27,21 +27,10 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftWhisper",
-            dependencies: ["whisper_cpp", "whisper_cpp_metal"]
-        ),
-        .target(
-            name: "whisper_cpp_metal",
-            path: "Sources/whisper_cpp_metal",
-            sources: ["ggml-metal.m"],
-            resources: resources,
-            publicHeadersPath: "include",
-            cSettings: [
-                .unsafeFlags(["-fno-objc-arc"])
-            ]
+            dependencies: ["whisper_cpp"]
         ),
         .target(
             name: "whisper_cpp",
-            dependencies: [.target(name: "whisper_cpp_metal")],
             path: "Sources/whisper_cpp",
             sources: [
                 "ggml.c",
