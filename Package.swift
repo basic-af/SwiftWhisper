@@ -10,7 +10,6 @@ exclude.append("coreml")
 
 let package = Package(
     name: "SwiftWhisper",
-    platforms: [.iOS(.v17), .macOS(.v10_15)],
     products: [
         .library(name: "SwiftWhisper", targets: ["SwiftWhisper"])
     ],
