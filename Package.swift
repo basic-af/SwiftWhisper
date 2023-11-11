@@ -45,7 +45,7 @@ let package = Package(
             resources: resources,
             publicHeadersPath: "include",
             cSettings: [
-                .unsafeFlags(["-Wno-shorten-64-to-32"]),
+                .unsafeFlags(["-Wno-shorten-64-to-32", "-O3", "-DNDEBUG"]),
                 .define("GGML_USE_ACCELERATE"),
                 .define("WHISPER_USE_COREML"),
                 .define("WHISPER_COREML_ALLOW_FALLBACK"),
