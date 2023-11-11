@@ -50,6 +50,8 @@ let package = Package(
                 .define("WHISPER_USE_COREML"),
                 .define("WHISPER_COREML_ALLOW_FALLBACK"),
                 .define("GGML_USE_METAL")
+                .define("ACCELERATE_NEW_LAPACK"),
+                .define("ACCELERATE_LAPACK_ILP64")
             ],
             linkerSettings: [
                 .linkedFramework("Accelerate")
