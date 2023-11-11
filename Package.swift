@@ -27,17 +27,17 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftWhisper",
-            dependencies: ["whisper_cpp", "whisper_cpp_metal"],
+            dependencies: ["whisper_cpp", "whisper_cpp_metal"]
         ),
         .target(
             name: "whisper_cpp_metal",
             path: "Sources/whisper_cpp_metal",
             sources: ["ggml-metal.m"],
+            resources: resources,
             publicHeadersPath: "include",
             cSettings: [
                 .unsafeFlags(["-fno-objc-arc"])
-            ],
-            resources: resources
+            ]
         ),
         .target(
             name: "whisper_cpp",
@@ -50,6 +50,7 @@ let package = Package(
                 "coreml/whisper-encoder.mm",
                 "whisper.cpp",
             ],
+            resources: resources,
             publicHeadersPath: "include",
             cSettings: [
                 .unsafeFlags(["-Wno-shorten-64-to-32"]),
@@ -58,7 +59,6 @@ let package = Package(
                 .define("WHISPER_COREML_ALLOW_FALLBACK"),
                 .define("GGML_USE_METAL")
             ],
-            resources: resources,
             linkerSettings: [
                 .linkedFramework("Accelerate"),
             ]
