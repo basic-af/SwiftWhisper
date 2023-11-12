@@ -144,6 +144,13 @@ public class Whisper {
                 guard let text = whisper_full_get_segment_text(self.whisperContext, index) else { continue }
                 let startTime = whisper_full_get_segment_t0(self.whisperContext, index)
                 let endTime = whisper_full_get_segment_t1(self.whisperContext, index)
+                let speakerTurn = whisper_full_get_segment_speaker_turn_next(self.whisperContext, index)
+                let numberOfTokens = whisper_full_n_tokens(self.whisperContext, index)
+
+                for i in 0...numberOfTokens {
+                    let tokenText = whisper_full_get_token_text(self.whisperContext, index, i)
+                    let tokenData = whisper_full_get_token_data(self.whisperContext, index, i)
+                }
 
                 segments.append(
                     .init(
