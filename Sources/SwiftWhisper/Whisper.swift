@@ -3,6 +3,10 @@ import whisper_cpp
 
 public struct WhisperContextParams {
     let useGPU: Bool
+
+    public init(useGPU: Bool) {
+        self.useGPU = useGPU
+    }
 }
 
 public class Whisper {
