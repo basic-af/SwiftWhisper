@@ -1,6 +1,10 @@
 import Foundation
 import whisper_cpp
 
+public struct WhisperContextParams {
+    let useGPU: Bool
+}
+
 public class Whisper {
     private let whisperContext: OpaquePointer
     private var unmanagedSelf: Unmanaged<Whisper>?
@@ -12,8 +16,10 @@ public class Whisper {
     internal var frameCount: Int? // For progress calculation (value not in `whisper_state` yet)
     internal var cancelCallback: (() -> Void)?
 
-    public init(fromFileURL fileURL: URL, withParams params: WhisperParams = .default) {
-        self.whisperContext = fileURL.relativePath.withCString { whisper_init_from_file($0) }
+    public init(fromFileURL fileURL: URL, withParams params: WhisperParams = .default, contextParams: WhisperContextParams) {
+        var contextParamsInternal = whisper_context_default_params()
+        contextParamsInternal.use_gpu = contextParams.useGPU
+        self.whisperContext = fileURL.relativePath.withCString { whisper_init_from_file_with_params($0, contextParamsInternal) }
         self.params = params
     }
 
