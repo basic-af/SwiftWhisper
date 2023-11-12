@@ -1,1 +1,1 @@
-../whisper_cpp/ggml.h
+../../whisper.cpp/ggml.h
