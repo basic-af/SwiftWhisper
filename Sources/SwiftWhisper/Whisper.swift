@@ -3,7 +3,6 @@ import whisper_cpp
 
 public struct WhisperContextParams {
     let useGPU: Bool
-    l
     public init(useGPU: Bool) {
         self.useGPU = useGPU
     }
@@ -23,7 +22,6 @@ public class Whisper {
     public init(fromFileURL fileURL: URL, withParams params: WhisperParams = .default, contextParams: WhisperContextParams) {
         var contextParamsInternal = whisper_context_default_params()
         contextParamsInternal.use_gpu = contextParams.useGPU
-        contextParamsInternal.n_threads = 4
         self.whisperContext = fileURL.relativePath.withCString { whisper_init_from_file_with_params($0, contextParamsInternal) }
         self.params = params
     }
