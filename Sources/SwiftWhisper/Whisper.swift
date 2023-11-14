@@ -8,6 +8,36 @@ public struct WhisperContextParams {
     }
 }
 
+struct WhisperTokenData {
+    var id: Int32   // Assuming whisper_token is an alias for uint32_t
+    var tid: Int32  // Adjust as per the actual type of whisper_token
+
+    var p: Float
+    var plog: Float
+    var pt: Float
+    var ptsum: Float
+
+    var t0: Int64
+    var t1: Int64
+
+    var vlen: Float
+}
+
+// If you have a pointer to whisper_token_data, add an initializer:
+extension WhisperTokenData {
+    init(cStruct: whisper_token_data) {
+        self.id = cStruct.id
+        self.tid = cStruct.tid
+        self.p = cStruct.p
+        self.plog = cStruct.plog
+        self.pt = cStruct.pt
+        self.ptsum = cStruct.ptsum
+        self.t0 = cStruct.t0
+        self.t1 = cStruct.t1
+        self.vlen = cStruct.vlen
+    }
+}
+
 public class Whisper {
     private let whisperContext: OpaquePointer
     private var unmanagedSelf: Unmanaged<Whisper>?
@@ -73,7 +103,9 @@ public class Whisper {
                 newSegments.append(.init(
                     startTime: Int(startTime) * 10, // Time is given in ms/10, so correct for that
                     endTime: Int(endTime) * 10,
-                    text: String(Substring(cString: text))
+                    text: String(Substring(cString: text)),
+                    speakerTurn: nil,
+                    probabilities: nil
                 ))
             }
 
@@ -112,7 +144,7 @@ public class Whisper {
         self.unmanagedSelf = nil
     }
 
-    public func transcribe(audioFrames: [Float], completionHandler: @escaping (Result<[Segment], Error>) -> Void) {
+    public func transcribe(audioFrames: [Float], parallel: Bool, threads: Int32, completionHandler: @escaping (Result<[Segment], Error>) -> Void) {
         prepareCallbacks()
 
         let wrappedCompletionHandler: (Result<[Segment], Error>) -> Void = { result in
@@ -133,30 +165,54 @@ public class Whisper {
         frameCount = audioFrames.count
 
         DispatchQueue.global(qos: .userInitiated).async {
-            whisper_full(self.whisperContext, self.params.whisperParams, audioFrames, Int32(audioFrames.count))
-
+            if parallel {
+                whisper_full_parallel(self.whisperContext, self.params.whisperParams, audioFrames, Int32(audioFrames.count), threads)
+            } else {
+                whisper_full(self.whisperContext, self.params.whisperParams, audioFrames, Int32(audioFrames.count))
+            }
+            
             let segmentCount = whisper_full_n_segments(self.whisperContext)
 
             var segments: [Segment] = []
             segments.reserveCapacity(Int(segmentCount))
 
             for index in 0..<segmentCount {
+
                 guard let text = whisper_full_get_segment_text(self.whisperContext, index) else { continue }
                 let startTime = whisper_full_get_segment_t0(self.whisperContext, index)
                 let endTime = whisper_full_get_segment_t1(self.whisperContext, index)
-                let speakerTurn = whisper_full_get_segment_speaker_turn_next(self.whisperContext, index)
+                let speakerTurn: Bool = whisper_full_get_segment_speaker_turn_next(self.whisperContext, index)
                 let numberOfTokens = whisper_full_n_tokens(self.whisperContext, index)
 
-                for i in 0...numberOfTokens {
-                    let tokenText = whisper_full_get_token_text(self.whisperContext, index, i)
-                    let tokenData = whisper_full_get_token_data(self.whisperContext, index, i)
+                let probabilities: [SegmentTextRange] = (0...numberOfTokens - 1).map { token in
+                    let tokenText = whisper_full_get_token_text(self.whisperContext, index, token)
+                    let tokenData = whisper_full_get_token_data(self.whisperContext, index, token)
+
+                    if let cString = tokenText {
+                        let tokenTextDecoded = String(cString: cString)
+
+                        if self.containsSpecialTokens(in: tokenTextDecoded) {
+                            return nil
+                        }
+
+                        let tokenDataDecoded = WhisperTokenData(cStruct: tokenData)
+                        
+                        print("\(tokenTextDecoded) - \(tokenDataDecoded)")
+
+                        return SegmentTextRange(text: tokenTextDecoded, probability: tokenDataDecoded.p)
+                    } else {
+                        return nil
+                    }
                 }
+                .compactMap({$0})
 
                 segments.append(
                     .init(
                         startTime: Int(startTime) * 10, // Correct for ms/10
                         endTime: Int(endTime) * 10,
-                        text: String(Substring(cString: text))
+                        text: String(Substring(cString: text)),
+                        speakerTurn: speakerTurn,
+                        probabilities: probabilities
                     )
                 )
             }
@@ -184,6 +240,16 @@ public class Whisper {
         }
     }
 
+    func containsSpecialTokens(in text: String) -> Bool {
+        let pattern = "\\[_(TT|EOT|SOT|SOLM|PREV|NOSP|NOT|BEG|extra_token)_(\\d+)?\\]"
+        let regex = try? NSRegularExpression(pattern: pattern, options: [])
+        let nsString = text as NSString
+        let range = NSRange(location: 0, length: nsString.length)
+        
+        // Check if there's at least one match
+        return regex?.firstMatch(in: text, options: [], range: range) != nil
+    }
+
     public func cancel(completionHandler: @escaping () -> Void) throws {
         guard inProgress else { throw WhisperError.cancellationError(.notInProgress) }
         guard cancelCallback == nil else { throw WhisperError.cancellationError(.pendingCancellation)}
@@ -192,9 +258,9 @@ public class Whisper {
     }
 
     @available(iOS 13, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
-    public func transcribe(audioFrames: [Float]) async throws -> [Segment] {
+    public func transcribe(audioFrames: [Float], parallel: Bool, threads: Int32 = 2) async throws -> [Segment] {
         return try await withCheckedThrowingContinuation { cont in
-            self.transcribe(audioFrames: audioFrames) { result in
+            self.transcribe(audioFrames: audioFrames, parallel: parallel, threads: threads) { result in
                 switch result {
                 case .success(let segments):
                     cont.resume(returning: segments)
